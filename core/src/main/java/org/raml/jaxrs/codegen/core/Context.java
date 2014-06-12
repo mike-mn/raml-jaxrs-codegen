@@ -59,6 +59,7 @@ import com.sun.codemodel.JClass;
 import com.sun.codemodel.JClassAlreadyExistsException;
 import com.sun.codemodel.JCodeModel;
 import com.sun.codemodel.JDefinedClass;
+import com.sun.codemodel.JInvocation;
 import com.sun.codemodel.JMethod;
 import com.sun.codemodel.JMod;
 import com.sun.codemodel.JPackage;
@@ -76,9 +77,10 @@ class Context
 
     private final SchemaMapper schemaMapper;
 
-    private boolean shouldGenerateResponseWrapper = false;
     private JDefinedClass currentResourceInterface;
     private final File globalSchemaStore;
+
+    private boolean shouldGenerateResponseUtil;
 
     public Context(final Configuration configuration, final Raml raml) throws IOException
     {
@@ -122,9 +124,8 @@ class Context
         ps.close();
 
         final Set<String> generatedFiles = new HashSet<String>();
-        if (shouldGenerateResponseWrapper)
-        {
-            generatedFiles.add(generateResponseWrapper());
+        if (shouldGenerateResponseUtil) {
+            generatedFiles.add(generateResponseUtil());
         }
         generatedFiles.addAll(Arrays.asList(StringUtils.split(baos.toString())));
 
@@ -177,31 +178,23 @@ class Context
         this.currentResourceInterface = currentResourceInterface;
     }
 
-    private String generateResponseWrapper() throws IOException
+    private String generateResponseUtil() throws IOException
     {
         final String template = IOUtils.toString(getClass().getResourceAsStream(
-            "/org/raml/templates/ResponseWrapper." + configuration.getJaxrsVersion().toString().toLowerCase()
-                            + ".template"));
+            "/org/raml/templates/ResponseUtil.template"));
 
         final File supportPackageOutputDirectory = new File(configuration.getOutputDirectory(),
             getSupportPackage().replace('.', File.separatorChar));
 
         supportPackageOutputDirectory.mkdirs();
 
-        final File sourceOutputFile = new File(supportPackageOutputDirectory, "ResponseWrapper.java");
+        final File sourceOutputFile = new File(supportPackageOutputDirectory, "ResponseUtil.java");
         final String source = template.replace("${codegen.support.package}", getSupportPackage());
         final FileWriter fileWriter = new FileWriter(sourceOutputFile);
         IOUtils.write(source, fileWriter);
         IOUtils.closeQuietly(fileWriter);
 
-        return getSupportPackage().replace('.', '/') + "/ResponseWrapper.java";
-    }
-
-    public JClass getResponseWrapperType()
-    {
-        shouldGenerateResponseWrapper = true;
-
-        return codeModel.directClass(getSupportPackage() + ".ResponseWrapper");
+        return getSupportPackage().replace('.', '/') + "/ResponseUtil.java";
     }
 
     public JDefinedClass createResourceInterface(final String name) throws Exception
@@ -318,5 +311,11 @@ class Context
     private String getSupportPackage()
     {
         return configuration.getBasePackageName() + ".support";
+    }
+
+    public JInvocation getResponseUtilStaticInvoke(String staticMethodName) {
+        shouldGenerateResponseUtil = true;
+        JClass responseUtilClass = codeModel.ref(getSupportPackage() + ".ResponseUtil");
+        return responseUtilClass.staticInvoke(staticMethodName);
     }
 }

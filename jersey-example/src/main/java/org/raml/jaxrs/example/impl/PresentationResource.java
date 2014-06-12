@@ -15,13 +15,15 @@
  */
 package org.raml.jaxrs.example.impl;
 
+import javax.ws.rs.core.Response;
+
 import org.raml.jaxrs.example.model.Presentation;
 import org.raml.jaxrs.example.resource.Presentations;
 
 public class PresentationResource implements Presentations
 {
     @Override
-    public GetPresentationsResponse getPresentations(final String authorization,
+    public Response getPresentations(final String authorization,
                                                      final String title,
                                                      final Long start,
                                                      final Long pages)
@@ -39,7 +41,7 @@ public class PresentationResource implements Presentations
     }
 
     @Override
-    public PostPresentationsResponse postPresentations(final String authorization, final Presentation entity)
+    public Response postPresentations(final String authorization, final Presentation entity)
     {
         if (!"s3cr3t".equals(authorization))
         {
@@ -52,7 +54,7 @@ public class PresentationResource implements Presentations
     }
 
     @Override
-    public GetPresentationsByPresentationIdResponse getPresentationsByPresentationId(final String presentationId,
+    public Response getPresentationsByPresentationId(final String presentationId,
                                                                                      final String authorization)
     {
         if (!"s3cr3t".equals(authorization))
@@ -65,7 +67,7 @@ public class PresentationResource implements Presentations
     }
 
     @Override
-    public PutPresentationsByPresentationIdResponse putPresentationsByPresentationId(final String presentationId,
+    public Response putPresentationsByPresentationId(final String presentationId,
                                                                                      final String authorization,
                                                                                      final Presentation entity)
     {
@@ -74,7 +76,7 @@ public class PresentationResource implements Presentations
     }
 
     @Override
-    public PatchPresentationsByPresentationIdResponse patchPresentationsByPresentationId(final String presentationId,
+    public Response patchPresentationsByPresentationId(final String presentationId,
                                                                                          final String authorization,
                                                                                          final Presentation entity)
     {
