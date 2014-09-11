@@ -14,7 +14,7 @@ It is then the responsibility of the developer to implement these interfaces in 
 
 - Interfaces are generated and will be regenerated when the RAML definition changes,
 - One interface is generated per top level resource, sub-resources are defined as different methods in the same interface.
-- A response object wrapper is created for each resource action in order to guide the implementer in producing only results
+- A helper class with static methods is created for each resource action in order to guide the implementer in producing only results
 that are compatible with the RAML definition,
 - Custom annotations are generated for HTTP methods that are not part of the core JAX-RS specification,
 - Objects are generated based on schemas to represent request/response entities,

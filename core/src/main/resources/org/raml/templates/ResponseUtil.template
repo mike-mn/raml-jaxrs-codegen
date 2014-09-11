@@ -1,0 +1,32 @@
+
+package ${codegen.support.package};
+
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
+
+import javax.ws.rs.core.Response.ResponseBuilder;
+
+/**
+ * Response utility methods
+ */
+public abstract class ResponseUtil
+{
+
+    public static ResponseBuilder headers(final Map<String, List<Object>> headers, final ResponseBuilder responseBuilder)
+    {
+        if (headers != null)
+        {
+            for (final Entry<String, List<Object>> nameAndValues : headers.entrySet())
+            {
+                for (final Object value : nameAndValues.getValue())
+                {
+                    responseBuilder.header(nameAndValues.getKey(), value);
+                }
+            }
+        }
+
+        return responseBuilder;
+    }
+}
+

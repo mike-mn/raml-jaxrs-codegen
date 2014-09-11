@@ -97,7 +97,6 @@ import com.sun.codemodel.JDocComment;
 import com.sun.codemodel.JExpr;
 import com.sun.codemodel.JInvocation;
 import com.sun.codemodel.JMethod;
-import com.sun.codemodel.JMod;
 import com.sun.codemodel.JType;
 import com.sun.codemodel.JVar;
 
@@ -297,7 +296,8 @@ public class Generator
         }
         else
         {
-            return createResourceMethodReturnType(methodName, action, resourceInterface);
+            createResourceMethodReturnType(methodName, action, resourceInterface);
+            return types.getGeneratorType(javax.ws.rs.core.Response.class);
         }
     }
 
@@ -306,12 +306,7 @@ public class Generator
                                                          final JDefinedClass resourceInterface)
         throws Exception
     {
-        final JDefinedClass responseClass = resourceInterface._class(capitalize(methodName) + "Response")
-            ._extends(context.getResponseWrapperType());
-
-        final JMethod responseClassConstructor = responseClass.constructor(JMod.PRIVATE);
-        responseClassConstructor.param(javax.ws.rs.core.Response.class, "delegate");
-        responseClassConstructor.body().invoke("super").arg(JExpr.ref("delegate"));
+        final JDefinedClass responseClass = resourceInterface._class(capitalize(methodName) + "Response");
 
         for (final Entry<String, Response> statusCodeAndResponse : action.getResponses().entrySet())
         {
@@ -342,7 +337,7 @@ public class Generator
         }
     }
 
-    private void createResponseBuilderInResourceMethodReturnType(final JDefinedClass responseClass,
+    private void createResponseBuilderInResourceMethodReturnType(final JDefinedClass responseBuilderClass,
                                                                  final int statusCode,
                                                                  final Response response,
                                                                  final MimeType responseMimeType)
@@ -350,7 +345,8 @@ public class Generator
     {
         final String responseBuilderMethodName = Names.buildResponseMethodName(statusCode, responseMimeType);
 
-        final JMethod responseBuilderMethod = responseClass.method(PUBLIC + STATIC, responseClass,
+        JClass plainResponseClass = types.getGeneratorClass(javax.ws.rs.core.Response.class);
+        final JMethod responseBuilderMethod = responseBuilderClass.method(PUBLIC + STATIC, plainResponseClass,
             responseBuilderMethodName);
 
         final JDocComment javadoc = responseBuilderMethod.javadoc();
@@ -410,9 +406,8 @@ public class Generator
             final JClass headersArgument = types.getGeneratorClass(Map.class).narrow(
                 types.getGeneratorClass(String.class), listOfObjectsClass);
 
-            builderArgument = responseBuilderMethodBody.invoke("headers")
-                .arg(JExpr.ref(MULTIPLE_RESPONSE_HEADERS_ARGUMENT_NAME))
-                .arg(builderVariable);
+            responseBuilderMethodBody.add(context.getResponseUtilStaticInvoke("headers").arg(JExpr.ref(MULTIPLE_RESPONSE_HEADERS_ARGUMENT_NAME))
+                .arg(builderVariable));
 
             final JVar param = responseBuilderMethod.param(headersArgument,
                 MULTIPLE_RESPONSE_HEADERS_ARGUMENT_NAME);
@@ -428,8 +423,7 @@ public class Generator
                 GENERIC_PAYLOAD_ARGUMENT_NAME);
             javadoc.addParam(GENERIC_PAYLOAD_ARGUMENT_NAME).add(defaultString(responseMimeType.getExample()));
         }
-
-        responseBuilderMethodBody._return(JExpr._new(responseClass).arg(builderVariable.invoke("build")));
+        responseBuilderMethodBody._return(builderVariable.invoke("build"));
     }
 
     private JDocComment addBaseJavaDoc(final Action action, final JMethod method)
