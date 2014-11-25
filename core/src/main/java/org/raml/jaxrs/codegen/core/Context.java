@@ -283,7 +283,7 @@ class Context
     }
 
     public JClass generateClassFromJsonSchema(final String className, final URL schemaUrl) throws IOException
-    {
+    {  
     	return schemaMapper.generate(codeModel, className, getModelPackage(), schemaUrl).boxify();
     }
 
